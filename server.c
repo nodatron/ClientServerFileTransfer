@@ -49,10 +49,30 @@ int main(int argc, char *argv[]) {
     }
 
     while(1) {
-        memset(msg, 0, 500);
-        READSIZE = recv(clientSock, msg, 2000, 0);
-        printf("client said: %s\n", msg);
-        write(clientSock, "What ??", strlen("What ??"));
+        char file_buffer[512]; // Receiver buffer
+        char* file_name = "/home/niall/Desktop/copy.html";
+
+        FILE *file_open = fopen(file_name, "w");
+        if(file_open == NULL) {
+            printf("File %s Cannot be opened file on server.\n", file_name);
+        } else {
+            bzero(file_buffer, 512); 
+            int block_size = 0;
+            int i=0;
+            while((block_size = recv(clientSock, file_buffer, 512, 0)) > 0) {
+                printf("Data Received %d = %d\n",i,block_size);
+                int write_sz = fwrite(file_buffer, sizeof(char), block_size, file_open);
+                bzero(file_buffer, 512);
+                i++;
+            }
+        }
+        printf("Transfer Complete!\n");
+        fclose(file_open);
+        break;
+        // memset(msg, 0, 500);
+        // READSIZE = recv(clientSock, msg, 2000, 0);
+        // printf("client said: %s\n", msg);
+        // write(clientSock, "What ??", strlen("What ??"));
     }
 
     if(READSIZE == 0) {
