@@ -4,23 +4,46 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include "mysocket.h"
 
-int fileSend(int SID) {
-    char *filename = "/home/niall/Desktop/test.html";
-    char file_buffer[512]; 
-    printf("[Client] Sending %s to the Server... ", filename);
-    FILE *file_open = fopen(filename, "r");
-    bzero(file_buffer, 512); 
-    int block_size,i=0; 
-    while((block_size = fread(file_buffer, sizeof(char), 512, file_open)) > 0) {
-        printf("Data Sent %d = %d\n",i,block_size);
-        if(send(SID, file_buffer, block_size, 0) < 0) {
-            return -1;
+int fileSend(int SID, char *file_name, int SIZE) {
+    char tmp[SIZE];
+    char *file_buffer = (char *) malloc(SIZE);
+    printf("[Client] Sending %s to the Server... ", file_name);
+    FILE *file_open = fopen(file_name, "r");
+    bzero(file_buffer, SIZE); 
+    int block_size = 1;
+    int n = 0;
+    int i = 0;
+    while((n = fread(tmp, sizeof(char), SIZE, file_open)) > 0) {
+        block_size += n;
+        // if the bytes read in is too big reallocate memeory
+        if (block_size > SIZE) {
+            file_buffer = (char *) realloc(file_buffer, block_size);
         }
-        bzero(file_buffer, 512);
-        i++;
+        strcat(file_buffer, tmp);
     }
-    return 0;
+    printf("Data Sent %d\n",block_size);
+    puts(file_buffer);
+    if(send(SID, file_buffer, block_size, 0) < 0) {
+        return -1;
+    }
+    free(file_buffer);
+    // char *filename = "/home/niall/Desktop/test.html";
+    // char file_buffer[512]; 
+    // printf("[Client] Sending %s to the Server... ", filename);
+    // FILE *file_open = fopen(filename, "r");
+    // bzero(file_buffer, 512); 
+    // int block_size,i=0; 
+    // while((block_size = fread(file_buffer, sizeof(char), 512, file_open)) > 0) {
+    //     printf("Data Sent %d = %d\n",i,block_size);
+    //     if(send(SID, file_buffer, block_size, 0) < 0) {
+    //         return -1;
+    //     }
+    //     bzero(file_buffer, 512);
+    //     i++;
+    // }
+    // return 0;
 }
 
 int main(int argc, char *argv[]) {
@@ -47,7 +70,8 @@ int main(int argc, char *argv[]) {
     printf("Connected to server ok!!\n");
 
     while(1) {
-        int fileSent = fileSend(SID);
+        // int fileSent = fileSend(SID, "/home/niall/Desktop/test.html", 5);
+        int fileSent = clientFileTransfer(SID, "/home/niall/Desktop/test.html", 5);
         if (fileSent == -1) {
             exit(-1);
         }

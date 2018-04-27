@@ -50,7 +50,8 @@ int main(int argc, char *argv[]) {
 
     while(1) {
         char file_buffer[512]; // Receiver buffer
-        char* file_name = "/home/niall/Desktop/copy.html";
+        // char* file_name = "/home/niall/Desktop/copy.html";
+        char *file_name = "/var/www/intranet/copy.html";
 
         FILE *file_open = fopen(file_name, "w");
         if(file_open == NULL) {
