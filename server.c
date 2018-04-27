@@ -3,6 +3,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include "logger.h"
 
 int main(int argc, char *argv[]) {
     int sockDes;

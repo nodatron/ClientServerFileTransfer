@@ -1,17 +1,20 @@
-server: server.o
-	gcc -o server server.o
+server: server.o logger.o
+	gcc -o server server.o logger.o
 
-client: client.o mysocket.o
-	gcc -o client client.o mysocket.o
+client: client.o socket_client.o logger.o
+	gcc -o client client.o socket_client.o logger.o
 
-server_com: server.c
+server_com: server.c logger.h
 	gcc -c server.c
 
-client_com: client.c mysocket.h
+client_com: client.c socket_client.h logger.h
 	gcc -c client.c
 
-mysocket: mysocket.c
-	gcc -c mysocket.c
+socket_client: socket_client.c
+	gcc -c socket_client.c
+
+logger: logger.c
+	gcc -c logger.c
 
 clean:
-	rm client.o server.o client server mysocket.o
+	rm client.o server.o client server socket_client.o

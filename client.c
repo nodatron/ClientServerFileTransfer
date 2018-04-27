@@ -4,7 +4,9 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#include "mysocket.h"
+#include <syslog.h>
+#include "socket_client.h"
+#include "logger.h"
 
 int fileSend(int SID, char *file_name, int SIZE) {
     char tmp[SIZE];
@@ -71,10 +73,12 @@ int main(int argc, char *argv[]) {
 
     while(1) {
         // int fileSent = fileSend(SID, "/home/niall/Desktop/test.html", 5);
-        int fileSent = clientFileTransfer(SID, "/home/niall/Desktop/test.html", 5);
+        int fileSent = clientFileTransfer(SID, "/home/niall/Desktop/test.html");
         if (fileSent == -1) {
+            logMsg("[Client] - file transfer", "failed to transfer the file", LOG_PID|LOG_CONS, LOG_USER, LOG_INFO);
             exit(-1);
         }
+        logMsg("[Client] - file transfer", "transfer success", LOG_PID|LOG_CONS, LOG_USER, LOG_INFO);
         break;
         // printf("\nEnter message: ");
         // scanf("%s", clientMsg);
