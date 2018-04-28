@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
         // int fileSent = fileSend(SID, "/home/niall/Desktop/test.html", 5);
         int fileSent = clientFileTransfer(SID, "/home/niall/Desktop/test.html");
         if (fileSent == -1) {
-            logMsg("[Client] - file transfer", "failed to transfer the file", LOG_PID|LOG_CONS, LOG_USER, LOG_INFO);
+            logMsg("[Client] - file transfer", "failed to transfer the file", LOG_PID|LOG_CONS, LOG_USER, LOG_ERR);
             exit(-1);
         }
         logMsg("[Client] - file transfer", "transfer success", LOG_PID|LOG_CONS, LOG_USER, LOG_INFO);

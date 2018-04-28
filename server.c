@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <syslog.h>
 #include "logger.h"
 #include "socket_server.h"
 
@@ -51,32 +53,13 @@ int main(int argc, char *argv[]) {
     }
 
     while(1) {
-        int q = serverFileUpload("copy.html", "./", clientSock);
-        // char file_buffer[512]; // Receiver buffer
-        // // char* file_name = "/home/niall/Desktop/copy.html";
-        // char *file_name = "/var/www/intranet/copy.html";
-
-        // FILE *file_open = fopen(file_name, "w");
-        // if(file_open == NULL) {
-        //     printf("File %s Cannot be opened file on server.\n", file_name);
-        // } else {
-        //     bzero(file_buffer, 512); 
-        //     int block_size = 0;
-        //     int i=0;
-        //     while((block_size = recv(clientSock, file_buffer, 512, 0)) > 0) {
-        //         printf("Data Received %d = %d\n",i,block_size);
-        //         int write_sz = fwrite(file_buffer, sizeof(char), block_size, file_open);
-        //         bzero(file_buffer, 512);
-        //         i++;
-        //     }
-        // }
-        // printf("Transfer Complete!\n");
-        // fclose(file_open);
+        int response = serverFileUpload("copy.html", "./", clientSock);
+        if (response == -1) {
+            logMsg("[Server] - file transfer", "failed to copy the file", LOG_PID|LOG_CONS, LOG_USER, LOG_ERR);
+            exit(-1);
+        }
+        logMsg("[Server] - file transfer", "complete transfer of file", LOG_PID|LOG_CONS, LOG_USER, LOG_INFO);
         break;
-        // memset(msg, 0, 500);
-        // READSIZE = recv(clientSock, msg, 2000, 0);
-        // printf("client said: %s\n", msg);
-        // write(clientSock, "What ??", strlen("What ??"));
     }
 
     if(READSIZE == 0) {
