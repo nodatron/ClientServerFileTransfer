@@ -49,6 +49,9 @@ int fileSend(int SID, char *file_name, int SIZE) {
 }
 
 int main(int argc, char *argv[]) {
+    char *path = argv[1];
+    char *dest = argv[2];
+
     int SID;
     struct sockaddr_in server;
     char clientMsg[500];
@@ -73,7 +76,7 @@ int main(int argc, char *argv[]) {
 
     while(1) {
         // int fileSent = fileSend(SID, "/home/niall/Desktop/test.html", 5);
-        int fileSent = clientFileTransfer(SID, "/home/niall/Desktop/test.html");
+        int fileSent = clientFileTransfer(SID, path, dest);
         if (fileSent == -1) {
             logMsg("[Client] - file transfer", "failed to transfer the file", LOG_PID|LOG_CONS, LOG_USER, LOG_ERR);
             exit(-1);

@@ -15,7 +15,7 @@
         - 0 - success
         - -1 - error
 */
-int clientFileTransfer(int SID, const char *file_name) {
+int clientFileTransfer(int SID, const char *file_name, const char *dest) {
     char tmp[FILE_BUFF_SIZE];
     char *file_buffer = (char *) malloc(FILE_BUFF_SIZE);
     printf("[Client] Sending %s to the Server... ", file_name);
@@ -30,8 +30,12 @@ int clientFileTransfer(int SID, const char *file_name) {
         }
         strcat(file_buffer, tmp);
     }
+    // char *data_to_send = (char *) malloc(block_size + strlen(dest) + 1);
     printf("Data Sent %d\n",block_size);
     puts(file_buffer);
+    if(send(SID, dest, block_size, 0) < 0) {
+        return -1;
+    }
     if(send(SID, file_buffer, block_size, 0) < 0) {
         return -1;
     }
