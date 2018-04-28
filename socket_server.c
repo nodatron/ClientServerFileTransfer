@@ -21,26 +21,27 @@ char *makeFilePath(char *file_name, char *path) {
 
 int serverFileUpload(char *file_name, char *path, int client) {
     char *full_path = makeFilePath(file_name, path);
-    char file_buffer[FILE_BUFF_SIZE]; // Receiver buffer
-    // char *full_file_name = strncat(tmp, file_name, (strlen(tmp) + strlen(file_name) + 1));
-    // puts(full_file_name);
+    char tmp[FILE_BUFF_SIZE];
+    char *file_buffer = (char *) malloc(FILE_BUFF_SIZE);
 
-    // char *file_name = "/var/www/intranet/copy.html";
-
-    // FILE *file_open = fopen(full_file_name, "w");
-    // if(file_open == NULL) {
-    //     printf("File %s Cannot be opened file on server.\n", full_file_name);
-    // } else {
-    //     bzero(file_buffer, FILE_BUFF_SIZE); 
-    //     int block_size = 0;
-    //     int i=0;
-    //     while((block_size = recv(clientSock, file_buffer, FILE_BUFF_SIZE, 0)) > 0) {
-    //         printf("Data Received %d = %d\n",i,block_size);
-    //         int write_sz = fwrite(file_buffer, sizeof(char), block_size, file_open);
-    //         bzero(file_buffer, FILE_BUFF_SIZE);
-    //         i++;
-    //     }
-    // }
-    // printf("Transfer Complete!\n");
-    // fclose(file_open);
+    FILE *file_open = fopen(full_path, "w");
+    if(file_open == NULL) {
+        printf("File %s Cannot be opened file on server.\n", full_path);
+    } else {
+        bzero(tmp, FILE_BUFF_SIZE); 
+        int block_size = 0;
+        int n = 0;
+        while((n = recv(client, tmp, FILE_BUFF_SIZE, 0)) > 0) {
+            block_size += n;
+            if (block_size > FILE_BUFF_SIZE) {
+                file_buffer = (char *) realloc(file_buffer, block_size);
+            }
+            strcat(file_buffer, tmp);
+        }
+        fwrite(file_buffer, sizeof(char), block_size, file_open);
+        bzero(tmp, FILE_BUFF_SIZE);
+        free(file_buffer);
+    }
+    printf("Transfer Complete!\n");
+    fclose(file_open);
 }
