@@ -5,47 +5,50 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <syslog.h>
-#include "socket_client.h"
 #include "logger.h"
 
-int fileSend(int SID, char *file_name, int SIZE) {
-    char tmp[SIZE];
-    char *file_buffer = (char *) malloc(SIZE);
-    printf("[Client] Sending %s to the Server... ", file_name);
-    FILE *file_open = fopen(file_name, "r");
-    bzero(file_buffer, SIZE); 
-    int block_size = 1;
+#define FILE_BUFF_SIZE 10000
+#define SERVER_RES 20
+
+int clientFileTransfer(int SID) {
+    char server_res[SERVER_RES];
+    char file_to_open[FILE_BUFF_SIZE];
+    char dest_path[FILE_BUFF_SIZE];
+    printf("Enter name of the file to send: ");
+    scanf("%s", file_to_open);
+    printf("%s\n", file_to_open);
+    printf("Enter name of the dest: ");
+    scanf("%s", dest_path);
+    fflush(stdin);
+
+    printf("%s\n%s", file_to_open, dest_path);
+    char file_buffer[FILE_BUFF_SIZE];
+    printf("[Client] Sending %s to the Server... ", file_to_open);
+    FILE *file_open = fopen(file_to_open, "r");
+    int block_size = 0;
     int n = 0;
-    int i = 0;
-    while((n = fread(tmp, sizeof(char), SIZE, file_open)) > 0) {
-        block_size += n;
-        // if the bytes read in is too big reallocate memeory
-        if (block_size > SIZE) {
-            file_buffer = (char *) realloc(file_buffer, block_size);
-        }
-        strcat(file_buffer, tmp);
-    }
-    printf("Data Sent %d\n",block_size);
-    puts(file_buffer);
-    if(send(SID, file_buffer, block_size, 0) < 0) {
+    bzero(file_buffer, FILE_BUFF_SIZE);
+    bzero(server_res, SERVER_RES);
+    fread(file_buffer, sizeof(char), FILE_BUFF_SIZE, file_open);
+    printf("\n\n%s\n\n%s\n\n", file_buffer, dest_path);
+    if(send(SID, dest_path, FILE_BUFF_SIZE, 0) < 0) {
         return -1;
     }
-    free(file_buffer);
-    // char *filename = "/home/niall/Desktop/test.html";
-    // char file_buffer[512]; 
-    // printf("[Client] Sending %s to the Server... ", filename);
-    // FILE *file_open = fopen(filename, "r");
-    // bzero(file_buffer, 512); 
-    // int block_size,i=0; 
-    // while((block_size = fread(file_buffer, sizeof(char), 512, file_open)) > 0) {
-    //     printf("Data Sent %d = %d\n",i,block_size);
-    //     if(send(SID, file_buffer, block_size, 0) < 0) {
-    //         return -1;
-    //     }
-    //     bzero(file_buffer, 512);
-    //     i++;
+    if(send(SID, file_buffer, FILE_BUFF_SIZE, 0) < 0) {
+        return -1;
+    }
+    // sleep(10);
+    // if (recv(SID, server_res, SERVER_RES, 0) < 0) {
+    //     printf("IO error");
+    //     return -1;
     // }
-    // return 0;
+    close(SID);
+    printf("\n%s\n", server_res);
+    // free(file_buffer);
+    bzero(server_res, SERVER_RES);
+    bzero(file_buffer, FILE_BUFF_SIZE);
+    bzero(dest_path, FILE_BUFF_SIZE);
+    return 0;
 }
 
 int main(int argc, char *argv[]) {
@@ -73,33 +76,13 @@ int main(int argc, char *argv[]) {
     printf("Connected to server ok!!\n");
 
     while(1) {
-        // int fileSent = fileSend(SID, "/home/niall/Desktop/test.html", 5);
         int fileSent = clientFileTransfer(SID);
         if (fileSent == -1) {
             logMsg("[Client] - file transfer", "failed to transfer the file", LOG_PID|LOG_CONS, LOG_USER, LOG_ERR);
             exit(-1);
         }
-        // if (recv(SID, serverMsg, 500, 0) < 0) {
-        //     printf("IO error");
-        //     break;
-        // }
         logMsg("[Client] - file transfer", "transfer success", LOG_PID|LOG_CONS, LOG_USER, LOG_INFO);
         break;
-        // printf("\nEnter message: ");
-        // scanf("%s", clientMsg);
-
-        // // Send some data
-        // if (send(SID, clientMsg, strlen(clientMsg), 0) < 0) {
-        //     printf("Send failed");
-        //     return 1;
-        // }
-
-        // if (recv(SID, serverMsg, 500, 0) < 0) {
-        //     printf("IO error");
-        //     break;
-        // }
-
-        // printf("\nServer sent: %s", serverMsg);
     }
     close(SID);
     return 0;
