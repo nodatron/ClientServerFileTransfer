@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
     }
 
     while(1) {
-        int response = serverFileUpload("copy.html", "./", clientSock);
+        int response = serverFileUpload("copy.html", "./", clientSock);     
         if (response == -1) {
             logMsg("[Server] - file transfer", "failed to copy the file", LOG_PID|LOG_CONS, LOG_USER, LOG_ERR);
             exit(-1);

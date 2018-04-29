@@ -31,8 +31,6 @@ int clientFileTransfer(int SID, const char *file_name, const char *dest) {
         strcat(file_buffer, tmp);
     }
     // char *data_to_send = (char *) malloc(block_size + strlen(dest) + 1);
-    printf("Data Sent %d\n",block_size);
-    puts(file_buffer);
     if(send(SID, dest, block_size, 0) < 0) {
         return -1;
     }
