@@ -15,7 +15,6 @@ pthread_mutex_t lock;
 void *client_handler(void *ptr) {
     pthread_mutex_lock(&lock);
     int client = *(int *)ptr;
-    printf("\nThis is the client ID: %d\n", client);
     char tmp[FILE_BUFF_SIZE];
     char full_file_path[FILE_BUFF_SIZE];
     char file_buffer[FILE_BUFF_SIZE];
@@ -38,13 +37,20 @@ void *client_handler(void *ptr) {
     printf("\nFILE: %s\nBUFF: %s\n%d\n", full_file_path, file_buffer, i);
     FILE *file_open = fopen(full_file_path, "w");
     if(file_open == NULL) {
-        printf("File %s Cannot be opened file on server.\n", full_file_path);
-        return -1;
+        char *msg = "File cannot be opened ";
+        char log_msg[LOG_MSG_SIZE];
+        strcat(log_msg, msg);
+        strcat(log_msg, full_file_path);
+        logMsg("[Server] - file transfer", log_msg, LOG_PID|LOG_CONS, LOG_USER, LOG_ERR);
+        pthread_exit(NULL);
     } else {
         fwrite(file_buffer, sizeof(char), strlen(file_buffer), file_open);
-        // write(client, "SUCCESS", strlen("SUCCESS"));
+        char *msg = "Transfer success to ";
+        char log_msg[LOG_MSG_SIZE];
+        strcat(log_msg, msg);
+        strcat(log_msg, full_file_path);
+        logMsg("[Server] - file transfer", log_msg, LOG_PID|LOG_CONS, LOG_USER, LOG_INFO);
     }
-    // write(client, "SUCCESS", strlen("SUCCESS"));
     fclose(file_open);
     close(client);
     bzero(tmp, FILE_BUFF_SIZE);
@@ -52,7 +58,6 @@ void *client_handler(void *ptr) {
     bzero(file_buffer, FILE_BUFF_SIZE);
     pthread_mutex_unlock(&lock);
     pthread_exit(NULL);
-    return 0;
 }
 
 int main(int argc, char *argv[]) {
@@ -65,9 +70,9 @@ int main(int argc, char *argv[]) {
     struct sockaddr_in server, client;
     sockDes = socket(AF_INET, SOCK_STREAM, 0);
     if (sockDes == -1) {
-        printf("Could not create socket");
+        logMsg("[Server] - Socket creation", "Failed", LOG_PID|LOG_CONS, LOG_USER, LOG_ERR);
     } else {
-        printf("Socket Successfully Created!!");
+        logMsg("[Server] - Socket creation", "Success", LOG_PID|LOG_CONS, LOG_USER, LOG_INFO);
     }
 
     // set sockaddr_in variables
@@ -79,25 +84,25 @@ int main(int argc, char *argv[]) {
     server.sin_addr.s_addr = INADDR_ANY;
 
     if(bind(sockDes, (struct sockaddr *) &server, sizeof(server)) < 0) {
-        perror("Bind issue!!");
+        logMsg("[Server] - Bind", "Failed", LOG_PID|LOG_CONS, LOG_USER, LOG_ERR);
         return 1;
     } else {
-        printf("Bind Complete!!");
+        logMsg("[Server] - Bind", "Success", LOG_PID|LOG_CONS, LOG_USER, LOG_INFO);
     }
 
     // listen for a connection
     listen(sockDes, 3);
     // Accept an incoming connection
-    printf("Waiting for incoming connection from Client>>");
+    logMsg("[Server] - status", "Waiting for incomming connections", LOG_PID|LOG_CONS, LOG_USER, LOG_INFO);
     connSize = sizeof(struct sockaddr_in);
     int tmp_sock;
     while(tmp_sock = accept(sockDes, (struct sockaddr *)&client, (socklen_t *)&connSize)) {
         pthread_t handler_thread;
         new_sock = malloc(4);
         *new_sock = tmp_sock;
-        printf("\nThis is the client ID: %d %d\n", tmp_sock, new_sock);
+        logMsg("[Server] - status", "Accepted new connection", LOG_PID|LOG_CONS, LOG_USER, LOG_INFO);
         if (pthread_create(&handler_thread, NULL, client_handler, (void *) new_sock) < 0) {
-            fprintf(stderr, "error");
+            logMsg("[Server] - status", "Thread Creation Error", LOG_PID|LOG_CONS, LOG_USER, LOG_ERR);
             exit(-1);
         }
         pthread_join(handler_thread, NULL);
@@ -105,7 +110,9 @@ int main(int argc, char *argv[]) {
 
     if (tmp_sock < 0) {
         perror("failed");
+
         return 1;
     }
+    logMsg("[Server] - status", "Shutting Down", LOG_PID|LOG_CONS, LOG_USER, LOG_INFO);
     return 0;
 }
