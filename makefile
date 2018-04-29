@@ -1,5 +1,5 @@
 server: server.o socket_server.o logger.o
-	gcc -o server server.o socket_server.o logger.o
+	gcc -o server server.o socket_server.o logger.o -l pthread
 
 client: client.o socket_client.o logger.o
 	gcc -o client client.o socket_client.o logger.o

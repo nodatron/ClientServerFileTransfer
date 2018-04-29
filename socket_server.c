@@ -39,6 +39,7 @@ int serverFileUpload(char *file_name, char *path, int client) {
         }
         i++;
     }
+    // write(client, "SUCCESS", strlen("SUCCESS"));
     printf("\nFILE: %s\nBUFF: %s\n%d\n", full_file_path, file_buffer, i);
     FILE *file_open = fopen(full_file_path, "w");
     if(file_open == NULL) {
@@ -46,6 +47,7 @@ int serverFileUpload(char *file_name, char *path, int client) {
         return -1;
     } else {
         fwrite(file_buffer, sizeof(char), block_size, file_open);
+        // write(client, "SUCCESS", strlen("SUCCESS"));
     }
     bzero(tmp, FILE_BUFF_SIZE);
     free(full_file_path);
