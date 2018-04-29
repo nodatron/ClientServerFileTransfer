@@ -1,3 +1,4 @@
+// Student Number: C14339246
 #include <syslog.h>
 
 // logs a message with flags set
