@@ -14,4 +14,4 @@ logger: logger.c
 	gcc -c logger.c
 
 clean:
-	rm client.o server.o client server socket_client.o
+	rm client.o server.o client server logger.o

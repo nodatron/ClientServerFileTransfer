@@ -10,12 +10,13 @@
 #define FILE_BUFF_SIZE 10000
 #define LOG_MSG_SIZE 200
 
+// fucntion to transfer file to server
 int clientFileTransfer(int SID) {
+    // variables and getting user input for file to copy and desstination
     char file_to_open[FILE_BUFF_SIZE];
     char dest_path[FILE_BUFF_SIZE];
     printf("Enter name of the file to send: ");
     scanf("%s", file_to_open);
-    printf("%s\n", file_to_open);
     printf("Enter name of the dest: ");
     scanf("%s", dest_path);
     fflush(stdin);
@@ -26,17 +27,18 @@ int clientFileTransfer(int SID) {
     strcat(log_msg, " to ");
     strcat(log_msg, dest_path);
     logMsg("[Client] - file transfer", log_msg, LOG_PID|LOG_CONS, LOG_USER, LOG_INFO);
+    // opening file and sending the data
     char file_buffer[FILE_BUFF_SIZE];
     FILE *file_open = fopen(file_to_open, "r");
     bzero(file_buffer, FILE_BUFF_SIZE);
     fread(file_buffer, sizeof(char), FILE_BUFF_SIZE, file_open);
-    printf("\n\n%s\n\n%s\n\n", file_buffer, dest_path);
     if(send(SID, dest_path, FILE_BUFF_SIZE, 0) < 0) {
         return -1;
     }
     if(send(SID, file_buffer, FILE_BUFF_SIZE, 0) < 0) {
         return -1;
     }
+    // cleanup
     close(SID);
     bzero(file_buffer, FILE_BUFF_SIZE);
     bzero(dest_path, FILE_BUFF_SIZE);
@@ -47,9 +49,8 @@ int main(int argc, char *argv[]) {
 
     int SID;
     struct sockaddr_in server;
-    char clientMsg[500];
-    char serverMsg[500];
 
+    // creating the socket
     SID = socket(AF_INET, SOCK_STREAM, 0);
     if (SID == -1) {
         logMsg("[Client] - socket", "failed", LOG_PID|LOG_CONS, LOG_USER, LOG_ERR);
@@ -57,10 +58,10 @@ int main(int argc, char *argv[]) {
         logMsg("[Client] - socket", "success", LOG_PID|LOG_CONS, LOG_USER, LOG_INFO);
     }
 
+    // connecting to the server
     server.sin_port = htons(8081);
     server.sin_addr.s_addr = inet_addr("127.0.0.1");
     server.sin_family = AF_INET;
-
     if (connect(SID, (struct sockaddr *)&server, sizeof(server)) < 0) {
         logMsg("[Client] - status", "Connection to server failed", LOG_PID|LOG_CONS, LOG_USER, LOG_ERR);
         printf("connect failed. Error");
@@ -69,15 +70,16 @@ int main(int argc, char *argv[]) {
     logMsg("[Client] - status", "Connected to server", LOG_PID|LOG_CONS, LOG_USER, LOG_INFO);
     printf("Connected to server ok!!\n");
 
-    while(1) {
-        int fileSent = clientFileTransfer(SID);
-        if (fileSent == -1) {
-            logMsg("[Client] - file transfer", "failed to transfer the file", LOG_PID|LOG_CONS, LOG_USER, LOG_ERR);
-            exit(-1);
-        }
-        logMsg("[Client] - file transfer", "transfer success", LOG_PID|LOG_CONS, LOG_USER, LOG_INFO);
-        break;
+    // sending the file
+    int fileSent = clientFileTransfer(SID);
+    if (fileSent == -1) {
+        logMsg("[Client] - file transfer", "failed to transfer the file", LOG_PID|LOG_CONS, LOG_USER, LOG_ERR);
+        exit(-1);
     }
+    logMsg("[Client] - file transfer", "transfer success", LOG_PID|LOG_CONS, LOG_USER, LOG_INFO);
+
+    printf("File Transfer success");
+    logMsg("[Client] - status", "closing down", LOG_PID|LOG_CONS, LOG_USER, LOG_INFO);
     close(SID);
     return 0;
 }
