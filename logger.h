@@ -1,3 +1,4 @@
+// Student Number: C14339246
 #ifndef MY_LOGGER_H
 #define MY_LOGGER_H
 
